@@ -13,4 +13,12 @@ services:
       SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY in .env}
       DB_PATH: /data/experience.db
     volumes:
-      - ./data:/data
+      # Named volume — Docker gère les permissions automatiquement (recommandé).
+      - coca_data:/data
+      # Alternative bind-mount (accès direct au fichier .db depuis l'hôte) :
+      #   commente la ligne ci-dessus, décommente celle-ci, puis avant le premier
+      #   `docker compose up` :  mkdir -p data && sudo chown -R 1000:1000 data
+      # - ./data:/data
+
+volumes:
+  coca_data:

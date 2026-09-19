@@ -48,7 +48,17 @@ L'app affiche l'URL locale et l'URL LAN au démarrage :
 
 3. Accès : `http://<ip-hôte>:8080` (change le port dans `docker-compose.yml` si besoin).
 
-Les données sont persistées dans `./data/experience.db` sur l'hôte.
+Les données sont persistées dans un volume Docker nommé `coca_data` (Docker gère les permissions automatiquement).
+
+### Accéder / sauvegarder la base
+
+```bash
+# Emplacement du volume
+docker volume inspect coca_blind_test_coca_data | grep Mountpoint
+
+# Copier la DB en local pour backup
+docker cp coca-tasting:/data/experience.db ./backup-$(date +%F).db
+```
 
 ### Mise à jour
 
@@ -56,7 +66,7 @@ Les données sont persistées dans `./data/experience.db` sur l'hôte.
 git pull && docker compose up -d --build
 ```
 
-Les données du volume `./data` sont conservées.
+Le volume `coca_data` est conservé.
 
 ### HTTPS avec Caddy
 
