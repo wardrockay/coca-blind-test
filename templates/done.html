@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <h1>Merci {{ name }} !</h1>
+  <p>Tu as voté pour {{ voted }} gobelet{{ 's' if voted > 1 else '' }} sur {{ total }}.</p>
+  <p class="muted">Les résultats seront révélés par l'admin à la fin de l'expérience.</p>
+  <p><a class="btn secondary" href="{{ url_for('logout') }}">Quitter</a></p>
+</section>
+{% endblock %}

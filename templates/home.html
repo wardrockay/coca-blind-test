@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <h1>Bienvenue</h1>
+  {% if not setup_done %}
+    <p class="muted">L'expérience n'a pas encore été configurée par l'admin.</p>
+    <p><a class="btn secondary" href="{{ url_for('admin_login') }}">Accès admin</a></p>
+  {% else %}
+    <p>Entre ton prénom pour commencer la dégustation à l'aveugle.</p>
+    <form method="post" action="{{ url_for('start') }}">
+      <label>
+        Prénom
+        <input type="text" name="name" required autocomplete="off" autofocus>
+      </label>
+      <button type="submit" class="btn">Commencer</button>
+    </form>
+    <p class="muted small">
+      Si tu reprends une session interrompue, entre le même prénom.
+    </p>
+  {% endif %}
+</section>
+{% endblock %}

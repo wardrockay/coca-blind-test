@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <h1>Résultats de la dégustation</h1>
+  <p class="muted">
+    Coca normal vs Coca Zero &mdash; {{ stats.total_voted }} dégustations,
+    {{ stats.participants|length }} participants.
+  </p>
+
+  <div class="kpis">
+    <div class="kpi">
+      <div class="kpi-label">Précision globale</div>
+      <div class="kpi-value">{{ '%.1f' % stats.accuracy }}%</div>
+      <div class="kpi-sub">{{ stats.total_correct }} correct / {{ stats.total_voted }}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Mieux que le hasard&nbsp;?</div>
+      <div class="kpi-value">
+        {% if stats.p_value is not none %}
+          {% if stats.p_value < 0.05 %}Oui{% else %}Non{% endif %}
+        {% else %}—{% endif %}
+      </div>
+      <div class="kpi-sub">
+        {% if stats.p_value is not none %}
+          p = {{ '%.3f' % stats.p_value }} (test vs. 50%)
+        {% endif %}
+      </div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Score attendu au hasard</div>
+      <div class="kpi-value">50.0%</div>
+      <div class="kpi-sub">écart&nbsp;: {{ '%+.1f' % (stats.accuracy - 50) }} pts</div>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Classement des participants</h2>
+  <div class="chart-wrap"><canvas id="chartRanking"></canvas></div>
+
+  <table class="ranking">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Nom</th>
+        <th>Bonnes réponses</th>
+        <th>Précision</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in stats.participants %}
+      <tr>
+        <td>
+          {% if loop.index == 1 %}1er
+          {% else %}{{ loop.index }}e{% endif %}
+        </td>
+        <td><strong>{{ p.name }}</strong></td>
+        <td>{{ p.correct }} / {{ p.voted }}</td>
+        <td>{{ '%.1f' % p.accuracy }}%</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="card">
+  <h2>Précision selon le niveau de confiance</h2>
+  <p class="muted small">
+    Si on est bon, la précision devrait monter avec la confiance.
+  </p>
+  <div class="chart-wrap"><canvas id="chartConfidence"></canvas></div>
+</section>
+
+<section class="card">
+  <h2>Matrice de confusion</h2>
+  <p class="muted small">
+    Quand c'était vraiment X, qu'a-t-on répondu&nbsp;?
+  </p>
+  <div class="chart-wrap"><canvas id="chartConfusion"></canvas></div>
+  <table class="confusion">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Répondu Normal</th>
+        <th>Répondu Zero</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th>Vraiment Normal</th>
+        <td class="ok">{{ stats.confusion.true_normal_guess_normal }}</td>
+        <td class="ko">{{ stats.confusion.true_normal_guess_zero }}</td>
+      </tr>
+      <tr>
+        <th>Vraiment Zero</th>
+        <td class="ko">{{ stats.confusion.true_zero_guess_normal }}</td>
+        <td class="ok">{{ stats.confusion.true_zero_guess_zero }}</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="card">
+  <h2>Répartition correct / faux</h2>
+  <div class="chart-wrap small"><canvas id="chartOverall"></canvas></div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const STATS = {{ stats|tojson }};
+
+const COL_CORRECT = '#1f7a3a';
+const COL_WRONG   = '#c8102e';
+const COL_NORMAL  = '#c8102e';
+const COL_ZERO    = '#1a1a1a';
+const COL_MUTED   = '#9ca3af';
+
+Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+Chart.defaults.color = '#333';
+
+/* ---------- Ranking (horizontal bar) ---------- */
+new Chart(document.getElementById('chartRanking'), {
+  type: 'bar',
+  data: {
+    labels: STATS.participants.map(p => p.name),
+    datasets: [{
+      label: 'Précision (%)',
+      data: STATS.participants.map(p => Math.round(p.accuracy * 10) / 10),
+      backgroundColor: STATS.participants.map(p =>
+        p.accuracy >= 60 ? COL_CORRECT : (p.accuracy < 50 ? COL_WRONG : COL_MUTED)
+      ),
+      borderRadius: 4,
+    }],
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => {
+            const p = STATS.participants[ctx.dataIndex];
+            return `${p.correct} / ${p.voted}  (${ctx.parsed.x.toFixed(1)}%)`;
+          }
+        }
+      },
+      annotation: {},
+    },
+    scales: {
+      x: {
+        min: 0, max: 100,
+        title: { display: true, text: 'Précision (%)' },
+        grid: { color: 'rgba(0,0,0,0.06)' },
+      },
+      y: { grid: { display: false } },
+    },
+  }
+});
+
+/* ---------- Accuracy by confidence ---------- */
+new Chart(document.getElementById('chartConfidence'), {
+  type: 'bar',
+  data: {
+    labels: STATS.by_confidence.map(c => 'Confiance ' + c.level),
+    datasets: [{
+      label: 'Précision (%)',
+      data: STATS.by_confidence.map(c => Math.round(c.accuracy * 10) / 10),
+      backgroundColor: STATS.by_confidence.map(c =>
+        c.total === 0 ? COL_MUTED :
+          c.accuracy >= 60 ? COL_CORRECT :
+          c.accuracy < 50 ? COL_WRONG : '#b45309'
+      ),
+      borderRadius: 4,
+    }],
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => {
+            const c = STATS.by_confidence[ctx.dataIndex];
+            return c.total === 0
+              ? 'Aucun vote à ce niveau'
+              : `${c.correct} / ${c.total}  (${ctx.parsed.y.toFixed(1)}%)`;
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        min: 0, max: 100,
+        title: { display: true, text: 'Précision (%)' },
+        grid: { color: 'rgba(0,0,0,0.06)' },
+      },
+      x: { grid: { display: false } },
+    },
+  }
+});
+
+/* ---------- Confusion (grouped bars) ---------- */
+new Chart(document.getElementById('chartConfusion'), {
+  type: 'bar',
+  data: {
+    labels: ['Vraiment Normal', 'Vraiment Zero'],
+    datasets: [
+      {
+        label: 'Répondu Normal',
+        data: [
+          STATS.confusion.true_normal_guess_normal,
+          STATS.confusion.true_zero_guess_normal,
+        ],
+        backgroundColor: COL_NORMAL,
+        borderRadius: 4,
+      },
+      {
+        label: 'Répondu Zero',
+        data: [
+          STATS.confusion.true_normal_guess_zero,
+          STATS.confusion.true_zero_guess_zero,
+        ],
+        backgroundColor: COL_ZERO,
+        borderRadius: 4,
+      },
+    ],
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom' } },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: 'Nombre de gobelets' },
+        grid: { color: 'rgba(0,0,0,0.06)' },
+      },
+      x: { grid: { display: false } },
+    },
+  }
+});
+
+/* ---------- Overall (doughnut) ---------- */
+new Chart(document.getElementById('chartOverall'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Correct', 'Faux'],
+    datasets: [{
+      data: [STATS.total_correct, STATS.total_incorrect],
+      backgroundColor: [COL_CORRECT, COL_WRONG],
+      borderWidth: 0,
+    }],
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '65%',
+    plugins: { legend: { position: 'bottom' } },
+  }
+});
+</script>
+{% endblock %}

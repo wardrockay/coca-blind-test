@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card taste">
+  <div class="progress">
+    Gobelet {{ voted + 1 }} / {{ total }}
+  </div>
+
+  <p class="instruction">Prends le gobelet</p>
+  <div class="cup-id">{{ assignment.cup_id }}</div>
+  <p class="instruction">et goûte-le.</p>
+
+  <form method="post" action="{{ url_for('vote', assignment_id=assignment.id) }}" class="vote-form">
+    <fieldset>
+      <legend>Selon toi, c'est&nbsp;?</legend>
+      <div class="choices">
+        <label class="choice">
+          <input type="radio" name="guess" value="normal" required>
+          <span>Coca normal</span>
+        </label>
+        <label class="choice">
+          <input type="radio" name="guess" value="zero" required>
+          <span>Coca Zero</span>
+        </label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Niveau de confiance</legend>
+      <div class="confidence">
+        {% for i in range(1, 6) %}
+          <label class="conf">
+            <input type="radio" name="confidence" value="{{ i }}" required>
+            <span>{{ i }}</span>
+          </label>
+        {% endfor %}
+      </div>
+      <div class="conf-legend">
+        <span>1 = peu confiant</span>
+        <span>5 = très confiant</span>
+      </div>
+    </fieldset>
+
+    <button type="submit" class="btn">Valider et passer au suivant</button>
+  </form>
+</section>
+{% endblock %}

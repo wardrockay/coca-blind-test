@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <h1>Résultats à venir</h1>
+  <p>Les résultats ne sont pas encore publiés.</p>
+  <p class="muted">
+    Progression de la dégustation : <strong>{{ voted }} / {{ total }}</strong> votes.
+  </p>
+  <p>Reviens sur cette page après que l'admin ait publié les résultats.</p>
+</section>
+{% endblock %}

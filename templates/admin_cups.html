@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <h1>Attribution des gobelets</h1>
+  <p class="muted">Rangée = lettre, colonne = numéro. <strong>N</strong> = Coca normal, <strong>Z</strong> = Coca Zero.</p>
+
+  <table class="cups-grid">
+    <thead>
+      <tr>
+        <th></th>
+        {% for n in range(1, 21) %}<th>{{ n }}</th>{% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for L, cups in by_letter.items() %}
+      <tr>
+        <th>{{ L }}</th>
+        {% for c in cups %}
+          <td class="cup {{ c.coke_type }}">
+            {{ 'N' if c.coke_type == 'normal' else 'Z' }}
+          </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p><a class="btn secondary" href="{{ url_for('admin') }}">Retour</a></p>
+</section>
+{% endblock %}

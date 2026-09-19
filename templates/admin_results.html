@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <h1>Classement</h1>
+
+  {% if not ranking %}
+    <p class="muted">Aucun participant pour l'instant.</p>
+  {% else %}
+    <table class="ranking">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nom</th>
+          <th>Bonnes réponses</th>
+          <th>Précision</th>
+          <th title="Somme des confiances : +conf si juste, −conf si faux">
+            Score pondéré
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in ranking %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td><strong>{{ r.name }}</strong></td>
+          <td>{{ r.correct }} / {{ r.voted }} ({{ r.total }} attribués)</td>
+          <td>{{ '%.0f' % r.accuracy }}%</td>
+          <td>{{ r.weighted }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+</section>
+
+{% if details_by_name %}
+<section class="card">
+  <h2>Détail par participant</h2>
+  {% for name, rows in details_by_name.items() %}
+    <details>
+      <summary><strong>{{ name }}</strong> ({{ rows|length }} gobelets)</summary>
+      <table class="details">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Gobelet</th>
+            <th>Réalité</th>
+            <th>Réponse</th>
+            <th>Confiance</th>
+            <th>Résultat</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in rows %}
+          <tr class="{% if a.voted_at %}{% if a.guess == a.coke_type %}ok{% else %}ko{% endif %}{% else %}pending{% endif %}">
+            <td>{{ a.position }}</td>
+            <td>{{ a.cup_id }}</td>
+            <td>{{ 'Normal' if a.coke_type == 'normal' else 'Zero' }}</td>
+            <td>
+              {% if a.guess %}{{ 'Normal' if a.guess == 'normal' else 'Zero' }}
+              {% else %}<span class="muted">—</span>{% endif %}
+            </td>
+            <td>{{ a.confidence or '—' }}</td>
+            <td>
+              {% if not a.voted_at %}<span class="muted">en attente</span>
+              {% elif a.guess == a.coke_type %}Correct
+              {% else %}Faux{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </details>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

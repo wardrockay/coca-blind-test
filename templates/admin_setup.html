@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <h1>Configuration de l'expérience</h1>
+
+  {% if setup_done %}
+    <div class="flash flash-error">
+      Attention : cette action va <strong>tout réinitialiser</strong>
+      (assignations, participants, votes).
+    </div>
+  {% endif %}
+
+  <form method="post"
+        {% if setup_done %}onsubmit="return confirm('Réinitialiser toute l\\'expérience ?');"{% endif %}>
+    <label>
+      Nombre de gobelets par personne
+      <input type="number" name="cups_per_person" min="1" max="100"
+             value="{{ cups_per_person }}" required>
+    </label>
+
+    <label>
+      Nombre de Coca <strong>normal</strong> parmi les 100 gobelets
+      <input type="number" name="n_normal" min="0" max="100"
+             value="{{ n_normal }}" required>
+    </label>
+    <p class="muted small">
+      Le reste (100 − ce nombre) sera du Coca Zero. Chaque personne recevra
+      une moitié de chaque type quand c'est possible, sinon un mélange aléatoire.
+    </p>
+
+    <button type="submit" class="btn">
+      {% if setup_done %}Reconfigurer{% else %}Initialiser{% endif %}
+    </button>
+    <a class="btn secondary" href="{{ url_for('admin') }}">Annuler</a>
+  </form>
+</section>
+{% endblock %}

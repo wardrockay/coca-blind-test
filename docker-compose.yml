@@ -1,0 +1,16 @@
+services:
+  web:
+    build: .
+    image: coca-tasting:latest
+    container_name: coca-tasting
+    restart: unless-stopped
+    ports:
+      # Bind on all interfaces so the LAN can reach it.
+      # Change 8080 to another port if it's taken on the host.
+      - "0.0.0.0:8080:5000"
+    environment:
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
+      SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY in .env}
+      DB_PATH: /data/experience.db
+    volumes:
+      - ./data:/data

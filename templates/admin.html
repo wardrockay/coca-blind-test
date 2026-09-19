@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <h1>Tableau de bord admin</h1>
+
+  {% if not setup_done %}
+    <p class="muted">L'expérience n'est pas encore configurée.</p>
+    <p><a class="btn" href="{{ url_for('admin_setup') }}">Configurer l'expérience</a></p>
+  {% else %}
+    <div class="stats">
+      <div><span class="big">{{ n_participants }}</span> participants</div>
+      <div><span class="big">{{ n_votes }}</span> / {{ n_assignments }} votes</div>
+      <div><span class="big">{{ n_normal }}</span> Coca normal</div>
+      <div><span class="big">{{ n_zero }}</span> Coca Zero</div>
+      <div><span class="big">{{ cups_per_person }}</span> gobelets / personne</div>
+    </div>
+
+    <div class="actions">
+      <a class="btn" href="{{ url_for('admin_prepare') }}">Mise en place (gobelet par gobelet)</a>
+      <a class="btn" href="{{ url_for('admin_cups') }}">Grille des gobelets</a>
+      <a class="btn" href="{{ url_for('admin_results') }}">Classement (admin)</a>
+      <a class="btn" href="{{ url_for('results') }}">Page publique</a>
+      <a class="btn secondary" href="{{ url_for('admin_setup') }}">Reconfigurer</a>
+    </div>
+
+    <div class="publish-zone">
+      <h2>Publication des résultats</h2>
+      {% if results_published %}
+        <p><strong>Les résultats sont publiés</strong> — visibles par tous sur
+          <a href="{{ url_for('results') }}">/results</a>.</p>
+        <form method="post" action="{{ url_for('admin_publish') }}">
+          <input type="hidden" name="action" value="unpublish">
+          <button type="submit" class="btn secondary">Retirer la publication</button>
+        </form>
+      {% else %}
+        <p class="muted">
+          Progression : <strong>{{ n_votes }} / {{ n_assignments }}</strong> votes.
+          {% if n_assignments > 0 and n_votes == n_assignments %}
+            Tout le monde a fini, tu peux publier.
+          {% endif %}
+        </p>
+        <form method="post" action="{{ url_for('admin_publish') }}">
+          <input type="hidden" name="action" value="publish">
+          <button type="submit" class="btn">Publier les résultats</button>
+        </form>
+      {% endif %}
+    </div>
+
+    <form method="post" action="{{ url_for('admin_reset') }}" class="danger-zone"
+          onsubmit="return confirm('Effacer TOUTES les données (gobelets, participants, votes) ?');">
+      <button type="submit" class="btn danger">Tout effacer</button>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}

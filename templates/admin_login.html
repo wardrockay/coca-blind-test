@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <h1>Accès admin</h1>
+  <form method="post">
+    <label>
+      Mot de passe
+      <input type="password" name="password" required autofocus>
+    </label>
+    <button type="submit" class="btn">Se connecter</button>
+  </form>
+</section>
+{% endblock %}

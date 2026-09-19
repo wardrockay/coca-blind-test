@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card prepare">
+  <div class="progress">
+    Gobelet {{ i }} / {{ total }}
+  </div>
+
+  <p class="instruction">Prends le gobelet</p>
+  <div class="cup-id">{{ cup_id }}</div>
+
+  <p class="instruction">et verse dedans&nbsp;:</p>
+  <div class="pour {{ coke_type }}">
+    {% if coke_type == 'normal' %}
+      Coca <strong>NORMAL</strong>
+    {% else %}
+      Coca <strong>ZERO</strong>
+    {% endif %}
+  </div>
+
+  <div class="prepare-nav">
+    {% if prev_i %}
+      <a class="btn secondary" href="{{ url_for('admin_prepare', i=prev_i) }}">Précédent</a>
+    {% else %}
+      <span class="btn secondary disabled">Précédent</span>
+    {% endif %}
+
+    {% if next_i %}
+      <a class="btn" href="{{ url_for('admin_prepare', i=next_i) }}">Suivant &rarr;</a>
+    {% else %}
+      <a class="btn" href="{{ url_for('admin') }}">Terminer</a>
+    {% endif %}
+  </div>
+
+  <div class="prepare-progress-bar">
+    <div class="fill" style="width: {{ (i / total * 100)|round(1) }}%"></div>
+  </div>
+
+  <p class="muted small center">
+    <a href="{{ url_for('admin_cups') }}">Voir la grille complète</a>
+    &middot;
+    <a href="{{ url_for('admin') }}">Retour au tableau de bord</a>
+  </p>
+</section>
+{% endblock %}

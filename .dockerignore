@@ -1,0 +1,17 @@
+__pycache__
+*.pyc
+*.pyo
+.venv
+venv
+env
+.env
+.env.*
+!.env.example
+experience.db
+experience.db-*
+*.sqlite*
+.git
+.gitignore
+.claude
+.vscode
+.idea

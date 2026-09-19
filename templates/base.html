@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Dégustation Coca{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header>
+  <a href="{{ url_for('home') }}" class="brand">Dégustation Coca vs Coca Zero</a>
+  <nav>
+    {% if results_published %}
+      <a href="{{ url_for('results') }}">Stats</a>
+    {% endif %}
+    {% if session.is_admin %}
+      <a href="{{ url_for('admin') }}">Admin</a>
+      <a href="{{ url_for('admin_cups') }}">Gobelets</a>
+      <a href="{{ url_for('admin_results') }}">Détail</a>
+      <a href="{{ url_for('admin_logout') }}">Déconnexion admin</a>
+    {% endif %}
+    {% if session.participant_name %}
+      <span class="hello">{{ session.participant_name }}</span>
+      <a href="{{ url_for('logout') }}">Quitter</a>
+    {% endif %}
+  </nav>
+</header>
+<main>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="flash flash-{{ cat }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>
