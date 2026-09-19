@@ -5,8 +5,9 @@ services:
     container_name: coca-tasting
     restart: unless-stopped
     ports:
-      # Bind on all interfaces so the LAN can reach it.
-      # Change 8080 to another port if it's taken on the host.
+      # Bind on all interfaces so the LAN can reach it directly (dev / local).
+      # Sur VPS derrière nginx, tu peux commenter cette ligne : nginx passe par
+      # le réseau interne net_public et n'a pas besoin de port hôte exposé.
       - "0.0.0.0:8080:5000"
     environment:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
@@ -19,6 +20,17 @@ services:
       #   commente la ligne ci-dessus, décommente celle-ci, puis avant le premier
       #   `docker compose up` :  mkdir -p data && sudo chown -R 1000:1000 data
       # - ./data:/data
+    networks:
+      - default
+      # net_public : réseau partagé avec le reverse-proxy nginx (external).
+      # Nécessaire uniquement en prod derrière nginx. En local, si le réseau
+      # n'existe pas, commente cette ligne.
+      - net_public
 
 volumes:
   coca_data:
+
+networks:
+  net_public:
+    external: true
+    name: net_public

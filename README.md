@@ -68,15 +68,23 @@ git pull && docker compose up -d --build
 
 Le volume `coca_data` est conservé.
 
-### HTTPS avec Caddy
+### HTTPS derrière un reverse-proxy nginx
 
-Sur le VPS, installe Caddy puis ajoute à `/etc/caddy/Caddyfile` :
-```
-degustation.ton-domaine.com {
-    reverse_proxy 127.0.0.1:8080
+Le `docker-compose.yml` connecte le conteneur au réseau externe `net_public`
+(à créer d'abord : `docker network create net_public`).
+
+Un reverse-proxy nginx sur ce même réseau peut alors proxyer :
+```nginx
+location / {
+    proxy_pass http://coca-tasting:5000;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
 }
 ```
-`systemctl reload caddy` → HTTPS auto (Let's Encrypt).
+Combine avec Certbot pour HTTPS auto. Si tu ne veux pas de reverse-proxy,
+commente la ligne `net_public` dans `docker-compose.yml`.
 
 ## Configuration
 
